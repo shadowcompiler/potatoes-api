@@ -1,3 +1,3 @@
 # Profiles REST API
 
-Udemy profiles REST API course.
+Udemy profiles REST API cours.
