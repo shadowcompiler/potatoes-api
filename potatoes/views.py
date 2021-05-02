@@ -1,8 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, viewsets
-from potatoes import serializers
-
+from rest_framework import (status, viewsets, filters)
+from potatoes import (serializers, models, permissions,)
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.settings import api_settings
+from rest_framework.permissions import IsAuthenticated
 
 class HelloWorld(APIView):
     """Test API View"""
@@ -80,3 +83,27 @@ class HelloViewset(viewsets.ViewSet):
     def retrieve(self, request, pk=None):
 
         return Response({'Http' : 'get'})
+
+
+class UserProfileViewset(viewsets.ModelViewSet):
+    """Profile viewset"""
+    serializer_class = serializers.UserProfileSerializer
+    queryset = models.UserProfile.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (permissions.UpdateOwnProfile,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('name', 'email',)
+
+
+class UserLoginApiView(ObtainAuthToken):
+    renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES
+
+
+class UserFeedViewset(viewsets.ModelViewSet):
+    serializer_class = serializers.UserFeedSerializer
+    authentication_classes = (TokenAuthentication,)
+    queryset = models.UserFeed.objects.all()
+    permission_classes = (IsAuthenticated, permissions.UpdateOwnStatus)
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
